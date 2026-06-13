@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AI Image Generator SAFE PRO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#0b1020;
+    color:white;
+}
+
+.container{
+    max-width:800px;
+    margin:auto;
+    padding:20px;
+}
+
+h1{
+    text-align:center;
+    color:#00ffe1;
+}
+
+.card{
+    background:rgba(255,255,255,0.05);
+    padding:15px;
+    border-radius:10px;
+    margin-top:15px;
+}
+
+input,select{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    border-radius:8px;
+    border:none;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    background:#00ffe1;
+    border:none;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+img{
+    width:100%;
+    margin-top:15px;
+    border-radius:10px;
+    display:none;
+}
+
+.loading{
+    text-align:center;
+    color:#00ffe1;
+    display:none;
+}
+
+small{
+    opacity:0.7;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>⚡ AI IMAGE GENERATOR SAFE PRO</h1>
+
+<div class="card">
+
+    <small>🔑 OpenAI API Key (WAJIB)</small>
+    <input id="apikey" placeholder="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" />
+
+    <input id="input" placeholder="contoh: unta, singa, mars..." />
+
+    <select id="style">
+        <option value="cinematic">Cinematic</option>
+        <option value="3d">3D Edukasi</option>
+        <option value="natgeo">National Geographic</option>
+    </select>
+
+    <button onclick="generate()">Generate Image</button>
+
+    <div class="loading" id="loading">AI sedang membuat gambar...</div>
+
+    <img id="img" />
+
+</div>
+
+</div>
+
+<script>
+
+function buildPrompt(text, style){
+
+    if(style === "cinematic"){
+        return `Ultra realistic cinematic image of ${text}, dramatic lighting, ultra HD, 8K`;
+    }
+
+    if(style === "3d"){
+        return `3D educational infographic of ${text}, museum style, labeled, ultra detailed`;
+    }
+
+    if(style === "natgeo"){
+        return `National Geographic wildlife photo style of ${text}, ultra realistic, natural lighting`;
+    }
+}
+
+async function generate(){
+
+    let key = document.getElementById("apikey").value;
+    let input = document.getElementById("input").value;
+    let style = document.getElementById("style").value;
+
+    if(!key){
+        alert("API key belum diisi!");
+        return;
+    }
+
+    if(!input){
+        alert("Masukkan ide!");
+        return;
+    }
+
+    let prompt = buildPrompt(input, style);
+
+    document.getElementById("loading").style.display = "block";
+
+    try {
+
+        let res = await fetch("https://api.openai.com/v1/images/generations", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + key
+            },
+            body: JSON.stringify({
+                model: "dall-e-3",
+                prompt: prompt,
+                size: "1024x1024"
+            })
+        });
+
+        let data = await res.json();
+
+        console.log("API RESPONSE:", data);
+
+        if(data.error){
+            alert("ERROR API: " + data.error.message);
+            document.getElementById("loading").style.display = "none";
+            return;
+        }
+
+        if(!data.data || !data.data[0]){
+            alert("Response kosong / tidak valid");
+            document.getElementById("loading").style.display = "none";
+            return;
+        }
+
+        let img = document.getElementById("img");
+        img.src = data.data[0].url;
+        img.style.display = "block";
+
+        document.getElementById("loading").style.display = "none";
+
+    } catch(err){
+        alert("Gagal koneksi API: " + err.message);
+        document.getElementById("loading").style.display = "none";
+    }
+}
+
+</script>
+
+</body>
+</html>
